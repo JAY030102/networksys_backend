@@ -28,11 +28,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/users/{user}/reject', [UserApprovalController::class, 'reject']);
 
     Route::post('/admin/users/{user}/terminate', [UserStatusController::class, 'terminate']);
-    Route::get('/admin/archived-users', [UserStatusController::class, 'index']);
+    Route::get('/admin/user-management/archived', [UserStatusController::class, 'index']);
 
-    Route::post('/admin/users/{user}/suspend', [UserStatusController::class, 'suspend']);
-    Route::post('/admin/users/{user}/reactivate', [UserStatusController::class, 'reactivate']);
-    Route::post('/admin/users/{user}/terminate', [UserStatusController::class, 'terminate']);
+    Route::post('/admin/user-management/{user}/suspend', [UserStatusController::class, 'suspend']);
+    Route::post('/admin/user-management/{user}/reactivate', [UserStatusController::class, 'reactivate']);
+    Route::post('/admin/user-management/{user}/terminate', [UserStatusController::class, 'terminate']);
 
-    Route::get('/admin/users', [UserStatusController::class, 'activeUsers']);
+    Route::get('/admin/user-management', [UserStatusController::class, 'activeUsers']);
 });
