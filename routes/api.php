@@ -6,6 +6,8 @@ use App\Http\Controllers\SuperAdmin\UserApprovalController;
 use App\Http\Controllers\SuperAdmin\UserStatusController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DeviceSelectionController;
+use App\Http\Controllers\DeviceController;
 
 
 Route::post('/login', [LoginController::class, 'login']);
@@ -35,4 +37,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/user-management/{user}/terminate', [UserStatusController::class, 'terminate']);
 
     Route::get('/admin/user-management', [UserStatusController::class, 'activeUsers']);
+
+    Route::apiResource('devices', DeviceController::class);
+    
+
+    Route::get('/device-selection/{type}', [DeviceSelectionController::class, 'index']);
+    Route::post('/device-selection/{type}', [DeviceSelectionController::class, 'store']);
+    Route::put('/device-selection/{type}/{id}', [DeviceSelectionController::class, 'update']);
+    Route::delete('/device-selection/{type}/{id}', [DeviceSelectionController::class, 'destroy']);
+
+    Route::get('/device-models', [DeviceSelectionController::class, 'models']);
+    Route::post('/device-models', [DeviceSelectionController::class, 'storeModel']);
+    Route::put('/device-models/{id}', [DeviceSelectionController::class, 'updateModel']);
+    Route::delete('/device-models/{id}', [DeviceSelectionController::class, 'destroyModel']);
 });
