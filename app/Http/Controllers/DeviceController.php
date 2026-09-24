@@ -16,14 +16,23 @@ class DeviceController extends Controller
     {
         $query = Device::with('assignedTo:id,name,email');
 
-        if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('device_name', 'like', "%{$search}%")
-                    ->orWhere('ip_address', 'like', "%{$search}%")
-                    ->orWhere('mac_address', 'like', "%{$search}%")
-                    ->orWhere('serial_number', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%");
+        if ($request->filled('search')) {
+        $search = $request->query('search');
+        $query->where(function ($q) use ($search) {
+            $q->where('device_name', 'like', "%{$search}%")
+            ->orWhere('category', 'like', "%{$search}%")
+            ->orWhere('status', 'like', "%{$search}%")
+            ->orWhere('ip_address', 'like', "%{$search}%")
+            ->orWhere('mac_address', 'like', "%{$search}%")
+            ->orWhere('manufacturer', 'like', "%{$search}%")
+            ->orWhere('model', 'like', "%{$search}%")
+            ->orWhere('serial_number', 'like', "%{$search}%")
+            ->orWhere('port', 'like', "%{$search}%")
+            ->orWhere('location', 'like', "%{$search}%")
+            ->orWhereHas('assignedTo', function ($uq) use ($search) {
+            $uq->where('name', 'like', "%{$search}%");
             });
+        });
         }
 
         if ($category = $request->query('category')) {
@@ -35,7 +44,7 @@ class DeviceController extends Controller
         }
 
         return response()->json(
-            $query->orderByDesc('created_at')->paginate($request->query('per_page', 15))
+            $query->orderByDesc('created_at')->paginate($request->query('per_page', 10))
         );
     }
 
@@ -94,7 +103,16 @@ class DeviceController extends Controller
             'mac_address' => ['nullable', 'string', 'max:255', Rule::unique('devices', 'mac_address')->ignore($ignoreId)],
             'vlan' => 'nullable|string|max:255',
             'manufacturer' => 'nullable|exists:device_manufacturers,name',
-            'model' => 'nullable|string|max:255',
+            'model' => [
+            'nullable', 'string', 'max:255',
+            function ($attribute, $value, $fail) use ($request) {
+                if (! $value) return;
+                $manufacturer = \App\Models\DeviceManufacturer::where('name', $request->manufacturer)->first();
+                if (! $manufacturer || ! \App\Models\DeviceModel::where('manufacturer_id', $manufacturer->id)->where('name', $value)->exists()) {
+                    $fail('The selected model does not belong to the selected manufacturer.');
+                }
+            },
+        ],
             'serial_number' => ['nullable', 'string', 'max:255', Rule::unique('devices', 'serial_number')->ignore($ignoreId)],
             'location' => 'nullable|string|max:255',
             'rack' => 'nullable|string|max:255',

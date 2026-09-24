@@ -26,7 +26,7 @@ Route::post('/register', [RegisterController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/users/pending', [UserApprovalController::class, 'pending']);
-    Route::post('/admin/users/{user}/approved', [UserApprovalController::class, 'approved']);
+    Route::post('/admin/users/{user}/approve', [UserApprovalController::class, 'approve']);
     Route::post('/admin/users/{user}/reject', [UserApprovalController::class, 'reject']);
 
     Route::post('/admin/users/{user}/terminate', [UserStatusController::class, 'terminate']);
@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/user-management', [UserStatusController::class, 'activeUsers']);
 
     Route::apiResource('devices', DeviceController::class);
-    
+
 
     Route::get('/device-selection/{type}', [DeviceSelectionController::class, 'index']);
     Route::post('/device-selection/{type}', [DeviceSelectionController::class, 'store']);

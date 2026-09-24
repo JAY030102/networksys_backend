@@ -19,7 +19,7 @@ class UserApprovalController extends Controller
         );
     }
 
-    public function approved(Request $request, User $user)
+    public function approve(Request $request, User $user)
     {
         $this->authorizeSuperAdmin($request);
 

@@ -32,10 +32,12 @@ class DeviceSelectionController extends Controller
         $model = $this->resolveModel($type);
         $table = (new $model())->getTable();
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')],
-        ]);
+        $rules = ['name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')]];
+        if (in_array($type, ['categories', 'statuses', 'models', 'manufacturers'])) {
+            $rules['color'] = 'nullable|string|max:7';
+        }
 
+    $validated = $request->validate($rules);
         $record = $model::create($validated);
 
         return response()->json(['message' => 'Created successfully.', 'data' => $record], 201);
@@ -47,10 +49,12 @@ class DeviceSelectionController extends Controller
         $table = (new $model())->getTable();
         $record = $model::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')->ignore($id)],
-        ]);
+        $rules = ['name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')->ignore($id)]];
+        if (in_array($type, ['categories', 'statuses', 'models', 'manufacturers'])) {
+            $rules['color'] = 'nullable|string|max:7';
+        }
 
+        $validated = $request->validate($rules);
         $record->update($validated);
 
         return response()->json(['message' => 'Updated successfully.', 'data' => $record]);
@@ -76,31 +80,33 @@ class DeviceSelectionController extends Controller
         return response()->json($query->orderBy('name')->get());
     }
 
-    public function storeModel(Request $request)
-    {
-        $validated = $request->validate([
-            'manufacturer_id' => 'required|exists:device_manufacturers,id',
-            'name' => 'required|string|max:255',
-        ]);
+   public function storeModel(Request $request)
+{
+    $validated = $request->validate([
+        'manufacturer_id' => 'required|exists:device_manufacturers,id',
+        'name' => 'required|string|max:255',
+        'color' => 'nullable|string|max:7',
+    ]);
 
-        $model = DeviceModel::create($validated);
+    $model = DeviceModel::create($validated);
 
-        return response()->json(['message' => 'Model created successfully.', 'data' => $model->load('manufacturer:id,name')], 201);
-    }
+    return response()->json(['message' => 'Model created successfully.', 'data' => $model->load('manufacturer:id,name')], 201);
+}
 
-    public function updateModel(Request $request, int $id)
-    {
-        $model = DeviceModel::findOrFail($id);
+public function updateModel(Request $request, int $id)
+{
+    $model = DeviceModel::findOrFail($id);
 
-        $validated = $request->validate([
-            'manufacturer_id' => 'required|exists:device_manufacturers,id',
-            'name' => 'required|string|max:255',
-        ]);
+    $validated = $request->validate([
+        'manufacturer_id' => 'required|exists:device_manufacturers,id',
+        'name' => 'required|string|max:255',
+        'color' => 'nullable|string|max:7',
+    ]);
 
-        $model->update($validated);
+    $model->update($validated);
 
-        return response()->json(['message' => 'Model updated successfully.', 'data' => $model->fresh()->load('manufacturer:id,name')]);
-    }
+    return response()->json(['message' => 'Model updated successfully.', 'data' => $model->fresh()->load('manufacturer:id,name')]);
+}
 
     public function destroyModel(int $id)
     {
