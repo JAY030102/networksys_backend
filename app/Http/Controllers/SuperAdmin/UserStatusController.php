@@ -13,11 +13,10 @@ class UserStatusController extends Controller
 
 public function activeUsers(Request $request)
 {
-    $this->authorizeSuperadmin($request);
+    abort_unless(in_array($request->user()?->role, ['admin', 'superadmin', 'staff']), 403, 'Unauthorized.');
 
     return response()->json(
         User::where('status', 'approved')
-            ->with('approvedBy:id,name')
             ->orderBy('name')
             ->get()
     );
@@ -91,6 +90,19 @@ public function reactivate(Request $request, User $user)
 
         return response()->json(['message' => 'User terminated and archived. They may register again.']);
     }
+
+    public function updateRole(Request $request, User $user)
+{
+    $this->authorizeSuperadmin($request);
+
+    $validated = $request->validate([
+        'role' => 'required|in:admin,superadmin,staff',
+    ]);
+
+    $user->update(['role' => $validated['role']]);
+
+    return response()->json(['message' => 'Role updated successfully.', 'user' => $user->fresh()]);
+}
 
     public function index(Request $request)
     {

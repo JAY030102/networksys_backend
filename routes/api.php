@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/user-management/{user}/terminate', [UserStatusController::class, 'terminate']);
 
     Route::get('/admin/user-management', [UserStatusController::class, 'activeUsers']);
+    Route::put('/admin/user-management/{user}/role', [UserStatusController::class, 'updateRole']);
 
     Route::apiResource('devices', DeviceController::class);
 

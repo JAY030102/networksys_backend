@@ -12,45 +12,61 @@ class DeviceController extends Controller
     protected array $statuses = ['active', 'inactive', 'maintenance', 'decommissioned'];
     protected array $manufacturers = ['Cisco', 'HP', 'Dell', 'Juniper', 'TP-Link', 'Ubiquiti', 'Lenovo', 'Other'];
 
-    public function index(Request $request)
-    {
-        $query = Device::with('assignedTo:id,name,email');
+public function index(Request $request)
+{
+    $query = Device::with('assignedTo:id,name,email');
 
-        if ($request->filled('search')) {
+    if ($request->filled('search')) {
         $search = $request->query('search');
         $query->where(function ($q) use ($search) {
             $q->where('device_name', 'like', "%{$search}%")
-            ->orWhere('category', 'like', "%{$search}%")
-            ->orWhere('status', 'like', "%{$search}%")
-            ->orWhere('ip_address', 'like', "%{$search}%")
-            ->orWhere('mac_address', 'like', "%{$search}%")
-            ->orWhere('manufacturer', 'like', "%{$search}%")
-            ->orWhere('model', 'like', "%{$search}%")
-            ->orWhere('serial_number', 'like', "%{$search}%")
-            ->orWhere('port', 'like', "%{$search}%")
-            ->orWhere('location', 'like', "%{$search}%")
-            ->orWhereHas('assignedTo', function ($uq) use ($search) {
-            $uq->where('name', 'like', "%{$search}%");
-            });
+                ->orWhere('property_no_or_serial_no', 'like', "%{$search}%")
+                ->orWhere('sub_par', 'like', "%{$search}%")
+                ->orWhere('category', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%")
+                ->orWhere('ip_address', 'like', "%{$search}%")
+                ->orWhere('mac_address', 'like', "%{$search}%")
+                ->orWhere('manufacturer', 'like', "%{$search}%")
+                ->orWhere('model', 'like', "%{$search}%")
+                ->orWhere('serial_number', 'like', "%{$search}%")
+                ->orWhere('port', 'like', "%{$search}%")
+                ->orWhere('location', 'like', "%{$search}%")
+                ->orWhereHas('assignedTo', function ($uq) use ($search) {
+                    $uq->where('name', 'like', "%{$search}%");
+                });
         });
-        }
-
-        if ($category = $request->query('category')) {
-            $query->where('category', $category);
-        }
-
-        if ($status = $request->query('status')) {
-            $query->where('status', $status);
-        }
-
-        return response()->json(
-            $query->orderByDesc('created_at')->paginate($request->query('per_page', 10))
-        );
     }
+
+    if ($category = $request->query('category')) {
+        $query->where('category', $category);
+    }
+
+    if ($status = $request->query('status')) {
+        $query->where('status', $status);
+    }
+
+    $sortField = $request->query('sort_field', 'created_at');
+    $sortOrder = $request->query('sort_order', 'desc');
+
+    $allowedSorts = ['device_name', 'property_no_or_serial_no', 'sub_par', 'category', 'status', 'ip_address', 'mac_address', 'manufacturer', 'model', 'location', 'created_at'];
+    if (! in_array($sortField, $allowedSorts)) {
+        $sortField = 'created_at';
+    }
+    if (! in_array($sortOrder, ['asc', 'desc'])) {
+        $sortOrder = 'desc';
+    }
+
+    $query->orderBy($sortField, $sortOrder);
+
+    return response()->json(
+        $query->paginate($request->query('per_page', 10))
+    );
+}
 
     public function store(Request $request)
     {
         $validated = $this->validated($request);
+        $validated['mac_address'] = $validated['mac_address'] ? strtoupper($validated['mac_address']) : null;
 
         $device = Device::create($validated);
 
@@ -68,6 +84,8 @@ class DeviceController extends Controller
     public function update(Request $request, Device $device)
     {
         $validated = $this->validated($request, $device->id);
+        $validated['mac_address'] = $validated['mac_address'] ? strtoupper($validated['mac_address']) : null;
+
 
         $device->update($validated);
 
@@ -97,6 +115,8 @@ class DeviceController extends Controller
     {
         return $request->validate([
             'device_name' => 'required|string|max:255',
+            'property_no_or_serial_no' => ['nullable', 'string', 'max:255', Rule::unique('devices', 'property_no_or_serial_no')->ignore($ignoreId)],
+            'sub_par' => 'nullable|string|max:255',
             'category' => 'required|exists:device_categories,name',
             'status' => 'required|exists:device_statuses,name',
             'ip_address' => ['nullable', 'ip', Rule::unique('devices', 'ip_address')->ignore($ignoreId)],
