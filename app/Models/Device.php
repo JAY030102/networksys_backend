@@ -9,7 +9,9 @@ class Device extends Model
     protected $fillable = [
         'device_name',
         'property_no_or_serial_no',
+        'par',
         'sub_par',
+        'it_asset_steward',
         'category',
         'status',
         'ip_address',

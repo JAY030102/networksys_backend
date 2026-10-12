@@ -21,6 +21,8 @@ public function index(Request $request)
         $query->where(function ($q) use ($search) {
             $q->where('device_name', 'like', "%{$search}%")
                 ->orWhere('property_no_or_serial_no', 'like', "%{$search}%")
+                ->orWhere('par', 'like', "%{$search}%")
+                ->orWhere('it_asset_steward', 'like', "%{$search}%")
                 ->orWhere('sub_par', 'like', "%{$search}%")
                 ->orWhere('category', 'like', "%{$search}%")
                 ->orWhere('status', 'like', "%{$search}%")
@@ -48,7 +50,7 @@ public function index(Request $request)
     $sortField = $request->query('sort_field', 'created_at');
     $sortOrder = $request->query('sort_order', 'desc');
 
-    $allowedSorts = ['device_name', 'property_no_or_serial_no', 'sub_par', 'category', 'status', 'ip_address', 'mac_address', 'manufacturer', 'model', 'location', 'created_at'];
+    $allowedSorts = ['device_name', 'property_no_or_serial_no','par', 'sub_par', 'it_asset_steward', 'category', 'status', 'ip_address', 'mac_address', 'manufacturer', 'model', 'location', 'created_at'];
     if (! in_array($sortField, $allowedSorts)) {
         $sortField = 'created_at';
     }
@@ -116,7 +118,9 @@ public function index(Request $request)
         return $request->validate([
             'device_name' => 'required|string|max:255',
             'property_no_or_serial_no' => ['nullable', 'string', 'max:255', Rule::unique('devices', 'property_no_or_serial_no')->ignore($ignoreId)],
+            'par' => 'nullable|string|max:255',
             'sub_par' => 'nullable|string|max:255',
+            'it_asset_steward' => 'nullable|string|max:255',
             'category' => 'required|exists:device_categories,name',
             'status' => 'required|exists:device_statuses,name',
             'ip_address' => ['nullable', 'ip', Rule::unique('devices', 'ip_address')->ignore($ignoreId)],
