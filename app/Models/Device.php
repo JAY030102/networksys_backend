@@ -42,4 +42,9 @@ class Device extends Model
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
+
+    public function runningConfigurations()
+    {
+        return $this->hasMany(DeviceRunningConfiguration::class, 'device_id');
+    }
 }

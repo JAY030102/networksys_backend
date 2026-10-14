@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DeviceCategory;
 use App\Models\DeviceManufacturer;
 use App\Models\DeviceModel;
+use App\Models\DeviceConfigurationTag;
 use App\Models\DeviceStatus;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,7 @@ class DeviceSelectionController extends Controller
             'categories' => DeviceCategory::class,
             'statuses' => DeviceStatus::class,
             'manufacturers' => DeviceManufacturer::class,
+            'configuration' => DeviceConfigurationTag::class,
             default => abort(404),
         };
     }
@@ -29,11 +31,12 @@ class DeviceSelectionController extends Controller
 
     public function store(Request $request, string $type)
     {
+        abort_if($type === 'configuration', 403, ' Tags cannot be added.');
         $model = $this->resolveModel($type);
         $table = (new $model())->getTable();
 
         $rules = ['name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')]];
-        if (in_array($type, ['categories', 'statuses', 'models', 'manufacturers'])) {
+        if (in_array($type, ['categories', 'statuses', 'models', 'manufacturers', 'configuration'])) {
             $rules['color'] = 'nullable|string|max:7';
         }
 
@@ -50,7 +53,7 @@ class DeviceSelectionController extends Controller
         $record = $model::findOrFail($id);
 
         $rules = ['name' => ['required', 'string', 'max:255', Rule::unique($table, 'name')->ignore($id)]];
-        if (in_array($type, ['categories', 'statuses', 'models', 'manufacturers'])) {
+        if (in_array($type, ['categories', 'statuses', 'models', 'manufacturers', 'configuration'])) {
             $rules['color'] = 'nullable|string|max:7';
         }
 
@@ -62,6 +65,7 @@ class DeviceSelectionController extends Controller
 
     public function destroy(string $type, int $id)
     {
+        abort_if($type === 'configuration', 403, 'Tags cannot be deleted.');
         $model = $this->resolveModel($type);
         $model::findOrFail($id)->delete();
 

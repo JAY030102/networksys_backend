@@ -14,7 +14,9 @@ class DeviceController extends Controller
 
 public function index(Request $request)
 {
-    $query = Device::with('assignedTo:id,name,email');
+    $query = Device::with('assignedTo:id,name,email')
+    ->withCount('runningConfigurations')
+    ->withMax('runningConfigurations', 'updated_at');
 
     if ($request->filled('search')) {
         $search = $request->query('search');
@@ -50,7 +52,7 @@ public function index(Request $request)
     $sortField = $request->query('sort_field', 'created_at');
     $sortOrder = $request->query('sort_order', 'desc');
 
-    $allowedSorts = ['device_name', 'property_no_or_serial_no','par', 'sub_par', 'it_asset_steward', 'category', 'status', 'ip_address', 'mac_address', 'manufacturer', 'model', 'location', 'created_at'];
+    $allowedSorts = ['device_name', 'property_no_or_serial_no','par', 'sub_par', 'it_asset_steward', 'category', 'status', 'ip_address', 'mac_address', 'manufacturer', 'model', 'location', 'running_configurations_count', 'created_at'];
     if (! in_array($sortField, $allowedSorts)) {
         $sortField = 'created_at';
     }

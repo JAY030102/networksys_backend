@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DeviceSelectionController;
 use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\DeviceRunningConfigurationController;
+
 
 
 Route::post('/login', [LoginController::class, 'login']);
@@ -51,4 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/device-models', [DeviceSelectionController::class, 'storeModel']);
     Route::put('/device-models/{id}', [DeviceSelectionController::class, 'updateModel']);
     Route::delete('/device-models/{id}', [DeviceSelectionController::class, 'destroyModel']);
+
+
+    Route::get('/device-running-configuration-devices', [DeviceRunningConfigurationController::class, 'devices']);
+    Route::apiResource('device-running-configurations', DeviceRunningConfigurationController::class);
+
 });
